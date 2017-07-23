@@ -186,6 +186,7 @@ var ScrollView = cc.Class({
     },
 
     properties: {
+        __isTouchValid: false,
         /**
          * !#en This is a reference to the UI element to be scrolled.
          * !#zh 可滚动展示内容的节点。
@@ -919,6 +920,12 @@ var ScrollView = cc.Class({
         if (!this.enabledInHierarchy) return;
         if (this._hasNestedViewGroup(event, captureListeners)) return;
 
+        if (!this.node._hitTest(event.touch.getLocation())) {
+            this.__isTouchValid = false;
+            return;
+        }
+        this.__isTouchValid = true;
+
         var touch = event.touch;
         if (this.content) {
             this._handlePressLogic(touch);
@@ -930,6 +937,7 @@ var ScrollView = cc.Class({
     _onTouchMoved: function(event, captureListeners) {
         if (!this.enabledInHierarchy) return;
         if (this._hasNestedViewGroup(event, captureListeners)) return;
+        if (!this.__isTouchValid) return;
 
         var touch = event.touch;
         if (this.content) {
@@ -959,6 +967,7 @@ var ScrollView = cc.Class({
     _onTouchEnded: function(event, captureListeners) {
         if (!this.enabledInHierarchy) return;
         if (this._hasNestedViewGroup(event, captureListeners)) return;
+        if (!this.__isTouchValid) return;
 
         this._dispatchEvent('touch-up');
 
@@ -975,6 +984,7 @@ var ScrollView = cc.Class({
     _onTouchCancelled: function(event, captureListeners) {
         if (!this.enabledInHierarchy) return;
         if (this._hasNestedViewGroup(event, captureListeners)) return;
+        if (!this.__isTouchValid) return;
 
         // Filte touch cancel event send from self
         if (!event.simulate) {

@@ -41,7 +41,7 @@ var _doDispatchEvent = function (owner, event) {
     event.eventPhase = 1;
     for (i = cachedArray.length - 1; i >= 0; --i) {
         target = cachedArray[i];
-        if (target._isTargetActive(event.type) && target._capturingListeners) {
+        if (target && target._isTargetActive(event.type) && target._capturingListeners) {
             event.currentTarget = target;
             // fire event
             target._capturingListeners.invoke(event, cachedArray);
