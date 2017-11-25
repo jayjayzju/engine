@@ -736,6 +736,36 @@ var View = cc._Class.extend({
             return;
         }
 
+        if ((resolutionPolicy instanceof cc.ResolutionPolicy
+            && resolutionPolicy.getContentStrategy() === cc.ResolutionPolicy.NO_BORDER)
+            || resolutionPolicy === cc.ResolutionPolicy.NO_BORDER)
+        {
+            if (height >= 1080)
+            {
+                // 高分辨率
+                // 背景图尺寸 2340 x 1440
+                // UI设计尺寸 1920 x 1080
+                width = 1920;
+                height = 1080;
+            }
+            else
+            {
+                // 低分辨率
+                // 背景图尺寸 1386 x 852
+                // UI设计尺寸 1136 x 640
+                width = 1136;
+                height = 640;
+            }
+
+            if (cc.game.canvas.width * 9 - cc.game.canvas.height * 16 > 0) {
+                // 比16:9更宽 -- iPhone X
+                width = cc.game.canvas.width * height / cc.game.canvas.height;
+            } else {
+                // 比16:9更窄 -- iPad
+                height = cc.game.canvas.height * width / cc.game.canvas.width;
+            }
+        }
+
         this._originalDesignResolutionSize.width = this._designResolutionSize.width = width;
         this._originalDesignResolutionSize.height = this._designResolutionSize.height = height;
 
@@ -1279,11 +1309,17 @@ cc.ContentStrategy = cc._Class.extend(/** @lends cc.ContentStrategy# */{
         apply: function (view, designedResolution) {
             var containerW = cc.game.canvas.width, containerH = cc.game.canvas.height,
                 designW = designedResolution.width, designH = designedResolution.height,
-                scaleX = containerW / designW, scaleY = containerH / designH, scale,
-                contentW, contentH;
+                scale, contentW, contentH;
 
-            scaleX < scaleY ? (scale = scaleY, contentW = designW * scale, contentH = containerH)
-                : (scale = scaleX, contentW = containerW, contentH = designH * scale);
+            if (containerW * 9 - containerH * 16 > 0) {
+                // 比16:9更宽 -- iPhone X
+                scale = containerH / designH;
+            } else {
+                // 比16:9更窄 -- iPad
+                scale = containerW / designW;
+            }
+            contentW = containerW;
+            contentH = containerH;
 
             return this._buildResult(containerW, containerH, contentW, contentH, scale, scale);
         }
@@ -1397,6 +1433,10 @@ cc.ResolutionPolicy = cc._Class.extend(/** @lends cc.ResolutionPolicy# */{
     setContainerStrategy: function (containerStg) {
         if (containerStg instanceof cc.ContainerStrategy)
             this._containerStrategy = containerStg;
+    },
+
+    getContentStrategy: function () {
+        return this._contentStrategy;
     },
 
     /**
